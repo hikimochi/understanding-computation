@@ -116,7 +116,7 @@ class LessThan < Struct.new(:left, :right) # 簡約可能
 end
 
 class Variable < Struct.new(:name)
-  def reduce(environment)
+  def reduce(environment) # このreduceはkeyから値を取り出す操作になる
     environment[name]
   end
 
