@@ -1,3 +1,17 @@
+class Machine < Struct.new(:expression)
+    def step
+      self.expression = expression.reduce
+    end
+  
+    def run
+      while expression.reducible?
+        puts expression
+        step
+      end
+      puts expression
+    end
+  end
+
 class Number < Struct.new(:value)
 
   def reducible?
@@ -63,15 +77,52 @@ class Multiply < Struct.new(:left, :right)
   end
 end
 
+class Boolean < Struct.new(:value) # 簡約不可能
+  def to_s
+    value.to_s
+  end
 
-p expression = Add.new(
-  Multiply.new(Number.new(1), Number.new(2)),
-  Multiply.new(Number.new(3), Number.new(4))
-)
-p expression.reducible?
-p expression = expression.reduce
-p expression.reducible?
-p expression = expression.reduce
-p expression.reducible?
-p expression = expression.reduce
-p expression.reducible?
+  def inspect
+    "«#{self}»"
+  end
+
+  def reducible?
+    false
+  end
+end
+
+class LessThan < Struct.new(:left, :right) # 簡約可能
+  def to_s
+    "#{left} < #{right}"
+  end
+
+  def inspect
+    "«#{self}»"
+  end
+
+  def reducible?
+    true
+  end
+
+  def reduce
+    if left.reducible?
+      LessThan.new(left.reduce, right)
+    elsif right.reducible?
+      LessThan.new(left, right.reduce)
+    else
+      Boolean.new(left.value < right.value)
+    end
+  end
+end
+
+
+Machine.new(
+  Add.new(
+    Multiply.new(Number.new(1), Number.new(2)),
+    Multiply.new(Number.new(3), Number.new(4))
+  )
+).run
+
+Machine.new(
+  LessThan.new(Number.new(5), Add.new(Number.new(2), Number.new(2)))
+).run
